@@ -1224,6 +1224,51 @@ public abstract class AbstractFirebaseAuth {
         .callAsync(firebaseApp);
   }
 
+  /**
+   * Generates the out-of-band email action link for verifying and changing email address.
+   * This link allows users to verify a new email address and update their account email
+   * in a single action.
+   *
+   * @param email The current email of the user.
+   * @param newEmail The new email address to verify and set.
+   * @param settings The action code settings object which defines whether the link is to be
+   *     handled by a mobile app and the additional state information to be passed in the
+   *     deep link.
+   * @return An email verification and change link.
+   * @throws IllegalArgumentException If either email address is null or empty, or if the
+   *     new email is the same as the current email.
+   * @throws FirebaseAuthException If an error occurs while generating the link.
+   */
+  public String generateVerifyAndChangeEmailLink(
+      @NonNull String email,
+      @NonNull String newEmail,
+      @Nullable ActionCodeSettings settings) throws FirebaseAuthException {
+    return generateVerifyAndChangeEmailLinkOp(email, newEmail, settings).call();
+  }
+
+  /**
+   * Similar to {@link #generateVerifyAndChangeEmailLink(String, String, ActionCodeSettings)}
+   * but performs the operation asynchronously.
+   *
+   * @param email The current email of the user.
+   * @param newEmail The new email address to verify and set.
+   * @param settings The action code settings object which defines whether the link is to be
+   *     handled by a mobile app and the additional state information to be passed in the
+   *     deep link.
+   * @return An {@code ApiFuture} which will complete successfully with the generated email
+   *     action link. If an error occurs while generating the link, the future throws a
+   *     {@link FirebaseAuthException}.
+   * @throws IllegalArgumentException If either email address is null or empty, or if the
+   *     new email is the same as the current email.
+   */
+  public ApiFuture<String> generateVerifyAndChangeEmailLinkAsync(
+      @NonNull String email,
+      @NonNull String newEmail,
+      @Nullable ActionCodeSettings settings) {
+    return generateVerifyAndChangeEmailLinkOp(email, newEmail, settings)
+        .callAsync(firebaseApp);
+  }
+
   private CallableOperation<String, FirebaseAuthException> generateEmailActionLinkOp(
       final EmailLinkType type, final String email, final ActionCodeSettings settings) {
     checkArgument(!Strings.isNullOrEmpty(email), "email must not be null or empty");
@@ -1235,6 +1280,21 @@ public abstract class AbstractFirebaseAuth {
       @Override
       protected String execute() throws FirebaseAuthException {
         return userManager.getEmailActionLink(type, email, settings);
+      }
+    };
+  }
+
+  private CallableOperation<String, FirebaseAuthException> generateVerifyAndChangeEmailLinkOp(
+      final String email, final String newEmail, final ActionCodeSettings settings) {
+    checkArgument(!Strings.isNullOrEmpty(email), "email must not be null or empty");
+    checkArgument(!Strings.isNullOrEmpty(newEmail), "newEmail must not be null or empty");
+    checkArgument(!email.equals(newEmail), "newEmail must be different from current email");
+    final FirebaseUserManager userManager = getUserManager();
+    return new CallableOperation<String, FirebaseAuthException>() {
+      @Override
+      protected String execute() throws FirebaseAuthException {
+        return userManager.getEmailActionLink(
+            EmailLinkType.VERIFY_AND_CHANGE_EMAIL, email, newEmail, settings);
       }
     };
   }

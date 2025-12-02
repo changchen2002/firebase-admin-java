@@ -870,6 +870,29 @@ public class FirebaseAuthIT {
   }
 
   @Test
+  public void testGenerateVerifyAndChangeEmailLink() throws Exception {
+    RandomUser user = UserTestUtils.generateRandomUserInfo();
+    String newEmail = "new" + user.getEmail();
+    temporaryUser.create(new UserRecord.CreateRequest()
+        .setUid(user.getUid())
+        .setEmail(user.getEmail())
+        .setEmailVerified(true)
+        .setPassword("password"));
+    String link = auth.generateVerifyAndChangeEmailLink(
+        user.getEmail(),
+        newEmail,
+        ActionCodeSettings.builder()
+            .setUrl(ACTION_LINK_CONTINUE_URL)
+            .setHandleCodeInApp(false)
+            .build());
+    Map<String, String> linkParams = parseLinkParameters(link);
+    assertEquals(ACTION_LINK_CONTINUE_URL, linkParams.get("continueUrl"));
+    assertEquals("verifyAndChangeEmail", linkParams.get("mode"));
+    // Verify that the link contains the new email information
+    assertTrue(link.contains(newEmail));
+  }
+
+  @Test
   public void testAuthErrorCodeParse() throws Exception {
     RandomUser user = UserTestUtils.generateRandomUserInfo();
     temporaryUser.create(new UserRecord.CreateRequest()

@@ -715,6 +715,24 @@ public class FirebaseAuthSnippets {
     // [END sign_in_with_email_link]
   }
 
+  public void generateVerifyAndChangeEmailLink() {
+    final ActionCodeSettings actionCodeSettings = initActionCodeSettings();
+    final String displayName = "Example User";
+    // [START verify_and_change_email_link]
+    String currentEmail = "user@example.com";
+    String newEmail = "newuser@example.com";
+    try {
+      String link = FirebaseAuth.getInstance().generateVerifyAndChangeEmailLink(
+          currentEmail, newEmail, actionCodeSettings);
+      // Construct email verification template, embed the link and send
+      // using custom SMTP server.
+      sendCustomEmail(newEmail, displayName, link);
+    } catch (FirebaseAuthException e) {
+      System.out.println("Error generating email link: " + e.getMessage());
+    }
+    // [END verify_and_change_email_link]
+  }
+
   // =====================================================================================
   // https://cloud.google.com/identity-platform/docs/managing-providers-programmatically
   // =====================================================================================
